@@ -1,4 +1,140 @@
-</button>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>팩맨 게임</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            font-family: 'Press Start 2P', cursive;
+            overflow: hidden;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .scoreboard {
+            width: 300px;
+            background-color: #1a1a1a;
+            border: 4px solid #fff;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            position: relative;
+            top: 20px;
+        }
+        .scoreboard h2 {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: yellow;
+        }
+        .scoreboard ul {
+            list-style: none;
+            padding: 0;
+        }
+        .scoreboard li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+        canvas {
+            background-color: #000;
+            border: 4px solid #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        .game-info {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 840px; /* Adjust to canvas width */
+        }
+        .score, .lives, .level {
+            font-size: 1.2rem;
+            margin-right: 20px;
+        }
+        .game-over-screen, .start-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            width: 80%;
+            max-width: 600px;
+        }
+        .start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .start-screen input {
+            background-color: #333;
+            border: 2px solid yellow;
+            padding: 10px;
+            margin-bottom: 10px;
+            color: yellow;
+            font-family: 'Press Start 2P', cursive;
+            text-align: center;
+        }
+        .start-screen button {
+            background-color: yellow;
+            color: #000;
+            font-family: 'Press Start 2P', cursive;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        .start-screen button:hover, .game-over-screen button:hover {
+            transform: scale(1.1);
+        }
+        .game-over-screen h1, .start-screen h1 {
+            font-size: 2.5rem;
+            color: yellow;
+            margin-bottom: 20px;
+        }
+        .game-over-screen p, .start-screen p {
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="scoreboard">
+            <h2>점수 기록판</h2>
+            <ul id="scoreboardList">
+                <!-- Scores will be inserted here by JavaScript -->
+            </ul>
+        </div>
+        
+        <div class="game-area">
+            <div class="start-screen">
+                <h1>PAC-MAN</h1>
+                <p>방향키로 팩맨을 움직여 모든 노란 점을 먹으세요!</p>
+                <input type="text" id="nicknameInput" placeholder="닉네임 입력" maxlength="10">
+                <button id="startButton">게임 시작</button>
+                <button id="guestButton">게스트로 시작</button>
             </div>
         
             <canvas id="gameCanvas" width="840" height="840"></canvas>
@@ -54,6 +190,8 @@
         let intendedDy = 0;
         let nickname = '게스트';
         let scoreboard = [];
+        let scaredTimer = 0;
+        let eatenGhostBonus = 100;
 
         // Maze generation using recursive backtracking with a second pass to add more paths
         function generateMaze() {
@@ -112,6 +250,12 @@
                 }
             }
             
+            // Add power pellets at corners
+            maze[1][1] = 'P';
+            maze[1][GRID_WIDTH - 2] = 'P';
+            maze[GRID_HEIGHT - 2][1] = 'P';
+            maze[GRID_HEIGHT - 2][GRID_WIDTH - 2] = 'P';
+
             return maze;
         }
 
@@ -122,6 +266,8 @@
             level = 1;
             isGameOver = false;
             gameRunning = true;
+            scaredTimer = 0;
+            eatenGhostBonus = 100;
             setupLevel();
         }
 
@@ -135,6 +281,7 @@
             respawnTimer = 0;
             intendedDx = 0;
             intendedDy = 0;
+            scaredTimer = 0;
             
             // Generate dots and count them
             for (let y = 0; y < gameMaze.length; y++) {
@@ -146,7 +293,8 @@
                 }
             }
 
-            // Set up Pacman and Ghost initial positions
+            // Pacman and ghost initial positions
+            // Pacman's starting tile is already handled for power pellet in generateMaze
             gameMaze[pacman.y][pacman.x] = ' ';
             dots--;
             
@@ -184,7 +332,7 @@
             // Clear dots from ghost spawn area
             for (let y = ghostSpawnY; y <= ghostSpawnY + 1; y++) {
                 for (let x = ghostSpawnX; x <= ghostSpawnX + 1; x++) {
-                     if (gameMaze[y] && gameMaze[y][x] === '.') {
+                     if (gameMaze[y] && (gameMaze[y][x] === '.' || gameMaze[y][x] === 'P')) {
                         gameMaze[y][x] = ' ';
                         dots--;
                     }
@@ -221,6 +369,12 @@
                         ctx.beginPath();
                         ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, 3, 0, Math.PI * 2);
                         ctx.fill();
+                    } else if (char === 'P') {
+                        // Draw power pellet
+                        ctx.fillStyle = 'yellow';
+                        ctx.beginPath();
+                        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE / 4, 0, Math.PI * 2);
+                        ctx.fill();
                     }
                 }
             }
@@ -253,7 +407,15 @@
 
         function drawGhosts() {
             ghosts.forEach(ghost => {
-                ctx.fillStyle = ghost.scared ? '#0000ff' : ghost.color;
+                let ghostColor = ghost.color;
+                if (ghost.scared) {
+                    ghostColor = '#0000ff';
+                    if (scaredTimer < 3000 && Math.floor(scaredTimer / 250) % 2 === 0) {
+                        ghostColor = '#ffffff'; // Blink white
+                    }
+                }
+
+                ctx.fillStyle = ghostColor;
                 ctx.beginPath();
                 ctx.moveTo(ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2);
                 ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2 * 0.9, Math.PI, 0, false);
@@ -277,6 +439,14 @@
 
         function updateLevel() {
             levelValue.textContent = level;
+        }
+        
+        function activateScaredMode() {
+            scaredTimer = 10000; // 10 seconds scared time
+            eatenGhostBonus = 100;
+            ghosts.forEach(ghost => {
+                ghost.scared = true;
+            });
         }
 
         function checkCollision(obj1, obj2) {
@@ -349,8 +519,8 @@
 
                     if (possibleMoves.length > 0) {
                         const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                        ghost.dx = move[0] * GHOST_SPEED;
-                        ghost.dy = move[1] * GHOST_SPEED;
+                        ghost.dx = move[0] * (ghost.scared ? GHOST_SPEED * 0.5 : GHOST_SPEED);
+                        ghost.dy = move[1] * (ghost.scared ? GHOST_SPEED * 0.5 : GHOST_SPEED);
                     } else {
                         ghost.dx *= -1;
                         ghost.dy *= -1;
@@ -375,7 +545,8 @@
                     intendedDy = 0;
 
                     if (ghost.scared) {
-                        score += 500;
+                        score += eatenGhostBonus;
+                        eatenGhostBonus *= 2;
                         ghost.x = Math.floor(GRID_WIDTH / 2);
                         ghost.y = Math.floor(GRID_HEIGHT / 2);
                         ghost.scared = false;
@@ -469,6 +640,14 @@
                     pacman.dy = intendedDy;
                 }
             }
+            
+            if (scaredTimer > 0) {
+                scaredTimer -= deltaTime;
+                if (scaredTimer <= 0) {
+                    ghosts.forEach(ghost => ghost.scared = false);
+                    eatenGhostBonus = 100;
+                }
+            }
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
@@ -489,6 +668,11 @@
                 score += 10;
                 dots--;
                 updateScore();
+            } else if (gameMaze[pacmanGridY] && gameMaze[pacmanGridY][pacmanGridX] === 'P') {
+                gameMaze[pacmanGridY][pacmanGridX] = ' ';
+                dots--;
+                updateScore();
+                activateScaredMode();
             }
 
             if (dots <= 0) {
@@ -554,7 +738,3 @@
     </script>
 </body>
 </html>
-
-
-
-
