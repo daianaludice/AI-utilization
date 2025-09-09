@@ -1,140 +1,4 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>팩맨 게임</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-        body {
-            background-color: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            color: #fff;
-            font-family: 'Press Start 2P', cursive;
-            overflow: hidden;
-        }
-        .game-container {
-            display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            gap: 20px;
-        }
-        .scoreboard {
-            width: 300px;
-            background-color: #1a1a1a;
-            border: 4px solid #fff;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            position: relative;
-            top: 20px;
-        }
-        .scoreboard h2 {
-            font-size: 1.5rem;
-            text-align: center;
-            margin-bottom: 20px;
-            color: yellow;
-        }
-        .scoreboard ul {
-            list-style: none;
-            padding: 0;
-        }
-        .scoreboard li {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.8rem;
-        }
-        canvas {
-            background-color: #000;
-            border: 4px solid #fff;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-        }
-        .game-info {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            width: 840px; /* Adjust to canvas width */
-        }
-        .score, .lives, .level {
-            font-size: 1.2rem;
-            margin-right: 20px;
-        }
-        .game-over-screen, .start-screen {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 100;
-            width: 80%;
-            max-width: 600px;
-        }
-        .start-screen {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .start-screen input {
-            background-color: #333;
-            border: 2px solid yellow;
-            padding: 10px;
-            margin-bottom: 10px;
-            color: yellow;
-            font-family: 'Press Start 2P', cursive;
-            text-align: center;
-        }
-        .start-screen button {
-            background-color: yellow;
-            color: #000;
-            font-family: 'Press Start 2P', cursive;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
-        }
-        .start-screen button:hover, .game-over-screen button:hover {
-            transform: scale(1.1);
-        }
-        .game-over-screen h1, .start-screen h1 {
-            font-size: 2.5rem;
-            color: yellow;
-            margin-bottom: 20px;
-        }
-        .game-over-screen p, .start-screen p {
-            font-size: 1rem;
-            margin-bottom: 10px;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="game-container">
-        <div class="scoreboard">
-            <h2>점수 기록판</h2>
-            <ul id="scoreboardList">
-                <!-- Scores will be inserted here by JavaScript -->
-            </ul>
-        </div>
-        
-        <div class="game-area">
-            <div class="start-screen">
-                <h1>PAC-MAN</h1>
-                <p>방향키로 팩맨을 움직여 모든 노란 점을 먹으세요!</p>
-                <input type="text" id="nicknameInput" placeholder="닉네임 입력" maxlength="10">
-                <button id="startButton">게임 시작</button>
-                <button id="guestButton">게스트로 시작</button>
+</button>
             </div>
         
             <canvas id="gameCanvas" width="840" height="840"></canvas>
@@ -286,7 +150,7 @@
             gameMaze[pacman.y][pacman.x] = ' ';
             dots--;
             
-            // Find a valid, non-wall position for ghosts to spawn
+            // Find a valid, non-wall position for ghosts to spawn that is not near Pac-Man's start
             let ghostSpawnX, ghostSpawnY;
             let foundSpawnPoint = false;
             const maxAttempts = GRID_WIDTH * GRID_HEIGHT;
@@ -295,7 +159,11 @@
             while (!foundSpawnPoint && attempts < maxAttempts) {
                 const randX = Math.floor(Math.random() * GRID_WIDTH);
                 const randY = Math.floor(Math.random() * GRID_HEIGHT);
-                if (gameMaze[randY] && gameMaze[randY][randX] !== 'W' && gameMaze[randY][randX] !== 'D') {
+
+                // Check if the tile is a valid path and not too close to Pac-Man's starting point
+                const isFarEnough = (Math.abs(randX - pacman.x) > 5 || Math.abs(randY - pacman.y) > 5);
+
+                if (gameMaze[randY] && gameMaze[randY][randX] !== 'W' && isFarEnough) {
                     ghostSpawnX = randX;
                     ghostSpawnY = randY;
                     foundSpawnPoint = true;
@@ -543,7 +411,8 @@
                 while (!foundSpot && attempts < 100) {
                     const randX = Math.floor(Math.random() * GRID_WIDTH);
                     const randY = Math.floor(Math.random() * GRID_HEIGHT);
-                    if (gameMaze[randY] && gameMaze[randY][randX] !== 'W') {
+                    const isFarEnough = (Math.abs(randX - 1) + Math.abs(randY - 1) > 5);
+                    if (gameMaze[randY] && gameMaze[randY][randX] !== 'W' && isFarEnough) {
                         ghost.x = randX;
                         ghost.y = randY;
                         foundSpot = true;
@@ -662,13 +531,13 @@
 
         startButton.addEventListener('click', () => {
             const inputNickname = nicknameInput.value.trim();
-            nickname = inputNickname === '' ? '게스트' : inputNickname;
+            nickname = inputNickname === '' ? 'guest' : inputNickname;
             initGame();
             requestAnimationFrame(gameLoop);
         });
 
         guestButton.addEventListener('click', () => {
-            nickname = '게스트';
+            nickname = 'guest';
             initGame();
             requestAnimationFrame(gameLoop);
         });
