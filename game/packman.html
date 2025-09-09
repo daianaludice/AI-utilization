@@ -3,41 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>팩맨 게임</title>
+    <title>젤리 냠냠이 게임</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        :root {
+            --bg-color: #e0f7fa; /* Light cyan */
+            --wall-color: #8c73ff; /* Pastel Purple */
+            --wall-border: #a291ff; /* Lighter Purple */
+            --dot-color: #ff9800; /* Bright Orange */
+            --pacman-color: #ffeb3b; /* Neon Yellow */
+            --pacman-glow: #ffc107;
+            --ghost-color-1: #ff7f99; /* Pink */
+            --ghost-color-2: #7c4dff; /* Indigo */
+            --ghost-color-3: #ffc107; /* Amber */
+            --ghost-color-4: #00e5ff; /* Cyan */
+            --ghost-dizzy-color: #bdbdbd; /* Light Gray */
+            --ui-bg: #ffffff; /* White UI background */
+            --ui-border: #b39ddb; /* UI Border */
+            --text-color: #333333; /* Dark text for contrast */
+        }
+
         body {
-            background-color: #000;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            color: #fff;
-            font-family: 'Press Start 2P', cursive;
+            color: var(--text-color);
+            font-family: 'Press Start 2P', sans-serif;
             overflow: hidden;
+            font-size: 1rem;
         }
         .game-container {
             display: flex;
             flex-direction: row;
             align-items: flex-start;
-            gap: 20px;
+            gap: 2rem;
         }
         .scoreboard {
             width: 300px;
-            background-color: #1a1a1a;
-            border: 4px solid #fff;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
+            background-color: var(--ui-bg);
+            border: 2px solid var(--ui-border);
+            padding: 2rem;
+            box-shadow: 0 0 15px var(--wall-color), inset 0 0 8px var(--wall-border);
+            border-radius: 1rem;
             position: relative;
-            top: 20px;
         }
         .scoreboard h2 {
             font-size: 1.5rem;
             text-align: center;
             margin-bottom: 20px;
-            color: yellow;
+            color: var(--text-color);
+            text-shadow: 0 0 5px var(--dot-color);
         }
         .scoreboard ul {
             list-style: none;
@@ -46,23 +64,39 @@
         .scoreboard li {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background-color: #f3e5f5;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+            border: 1px solid #ce93d8;
+        }
+        .scoreboard li:hover {
+            transform: scale(1.05);
+            background-color: #e1bee7;
         }
         canvas {
-            background-color: #000;
-            border: 4px solid #fff;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            background-color: #e0f7fa;
+            border: 4px solid var(--ui-border);
+            box-shadow: 0 0 30px var(--wall-color), inset 0 0 10px var(--wall-border);
+            border-radius: 1rem;
+            display: none;
         }
         .game-info {
-            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #b39ddb;
+        }
+        .game-info div {
             display: flex;
             justify-content: space-between;
-            width: 840px; /* Adjust to canvas width */
-        }
-        .score, .lives, .level {
             font-size: 1.2rem;
-            margin-right: 20px;
+            color: var(--text-color);
         }
         .game-over-screen, .start-screen {
             position: absolute;
@@ -70,12 +104,14 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
+            background: linear-gradient(145deg, #fff, #e0f7fa);
+            padding: 3rem 2rem;
+            border-radius: 1.5rem;
             z-index: 100;
             width: 80%;
             max-width: 600px;
+            border: 2px solid var(--ui-border);
+            box-shadow: 0 0 30px var(--wall-color);
         }
         .start-screen {
             display: flex;
@@ -83,39 +119,90 @@
             align-items: center;
         }
         .start-screen input {
-            background-color: #333;
-            border: 2px solid yellow;
-            padding: 10px;
-            margin-bottom: 10px;
-            color: yellow;
-            font-family: 'Press Start 2P', cursive;
-            text-align: center;
-        }
-        .start-screen button {
-            background-color: yellow;
-            color: #000;
-            font-family: 'Press Start 2P', cursive;
-            padding: 10px 20px;
-            border-radius: 5px;
+            background-color: #f5f5f5;
+            border: 2px solid var(--ui-border);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-color);
+            font-family: 'Press Start 2P', sans-serif;
             font-size: 1rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            box-shadow: inset 0 0 5px #ff7f99;
+        }
+        .start-screen button, .game-over-screen button {
+            background: var(--pacman-color);
+            color: var(--text-color);
+            font-family: 'Press Start 2P', sans-serif;
+            padding: 1rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 1rem;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 5px #ffc107;
         }
         .start-screen button:hover, .game-over-screen button:hover {
-            transform: scale(1.1);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(255, 255, 255, 0.4);
         }
         .game-over-screen h1, .start-screen h1 {
-            font-size: 2.5rem;
-            color: yellow;
-            margin-bottom: 20px;
+            font-size: 2rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--pacman-glow);
         }
         .game-over-screen p, .start-screen p {
             font-size: 1rem;
-            margin-bottom: 10px;
+            margin-bottom: 1rem;
+            color: #666;
         }
         .hidden {
             display: none;
+        }
+        .fade-in {
+            animation: fadeIn 1s forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .power-pellet-glow {
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(1.2); opacity: 0.8; }
+        }
+        .game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.1);
+            color: var(--text-color);
+            padding: 1.5rem 2.5rem;
+            border-radius: 1rem;
+            font-size: 1.5rem;
+            z-index: 200;
+            opacity: 0;
+            animation: fadeAndRise 1.5s forwards;
+            text-shadow: 0 0 5px #ffeb3b;
+            border: 2px solid var(--ui-border);
+        }
+        @keyframes fadeAndRise {
+            0% { opacity: 0; transform: translate(-50%, -30%); }
+            20% { opacity: 1; transform: translate(-50%, -50%); }
+            80% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -70%); }
+        }
+        @keyframes glitch-text {
+            0% { text-shadow: 0.05em 0 0 var(--ghost-color-2), -0.05em -0.025em 0 var(--ghost-color-1), -0.025em 0.05em 0 var(--ghost-color-3); }
+            15% { text-shadow: -0.05em -0.025em 0 var(--ghost-color-2), 0.05em 0.025em 0 var(--ghost-color-1), -0.025em 0.05em 0 var(--ghost-color-3); }
+            50% { text-shadow: 0.05em 0 0 var(--ghost-color-2), -0.05em -0.025em 0 var(--ghost-color-1), -0.025em 0.05em 0 var(--ghost-color-3); }
+            100% { text-shadow: 0.05em 0 0 var(--ghost-color-2), -0.05em -0.025em 0 var(--ghost-color-1), -0.025em 0.05em 0 var(--ghost-color-3); }
         }
     </style>
 </head>
@@ -124,14 +211,19 @@
         <div class="scoreboard">
             <h2>점수 기록판</h2>
             <ul id="scoreboardList">
-                <!-- Scores will be inserted here by JavaScript -->
+                <!-- 점수 목록 -->
             </ul>
+            <div class="game-info">
+                <div>점수: <span id="scoreValue">0</span></div>
+                <div>목숨: <span id="livesValue">3</span></div>
+                <div>레벨: <span id="levelValue">1</span></div>
+            </div>
         </div>
         
         <div class="game-area">
             <div class="start-screen">
-                <h1>PAC-MAN</h1>
-                <p>방향키로 팩맨을 움직여 모든 노란 점을 먹으세요!</p>
+                <h1>젤리 냠냠이</h1>
+                <p>방향키로 젤리 냠냠이를 움직여 모든 젤리들을 먹으세요!</p>
                 <input type="text" id="nicknameInput" placeholder="닉네임 입력" maxlength="10">
                 <button id="startButton">게임 시작</button>
                 <button id="guestButton">게스트로 시작</button>
@@ -139,21 +231,16 @@
         
             <canvas id="gameCanvas" width="840" height="840"></canvas>
             
-            <div class="game-info">
-                <div class="score">점수: <span id="scoreValue">0</span></div>
-                <div class="lives">남은 목숨: <span id="livesValue">3</span></div>
-                <div class="level">레벨: <span id="levelValue">1</span></div>
-            </div>
-        
             <div id="gameOverScreen" class="game-over-screen hidden">
-                <h1>게임 오버!</h1>
+                <h1>게임 끝!</h1>
                 <p>최종 점수: <span id="finalScore">0</span></p>
                 <button id="restartButton">다시 시작</button>
             </div>
         </div>
     </div>
+    <div id="gameMessage" class="game-message hidden"></div>
 
-    <script>
+    <script type="module">
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreValue = document.getElementById('scoreValue');
@@ -167,6 +254,7 @@
         const finalScore = document.getElementById('finalScore');
         const nicknameInput = document.getElementById('nicknameInput');
         const scoreboardList = document.getElementById('scoreboardList');
+        const gameMessage = document.getElementById('gameMessage');
 
         const TILE_SIZE = 40; 
         const GRID_WIDTH = 21;
@@ -189,11 +277,20 @@
         let intendedDx = 0;
         let intendedDy = 0;
         let nickname = '게스트';
-        let scoreboard = [];
-        let scaredTimer = 0;
+        let dizzyTimer = 0;
         let eatenGhostBonus = 100;
+        
+        const getCssVariable = (name) => getComputedStyle(document.documentElement).getPropertyValue(name);
 
-        // Maze generation using recursive backtracking with a second pass to add more paths
+        function fetchScores() {
+            const mockScores = [
+                { nickname: '네온고수', level: 5, score: 25000 },
+                { nickname: '도트천재', level: 3, score: 12000 },
+                { nickname: '삐빅초보', level: 1, score: 5000 }
+            ];
+            renderScoreboard(mockScores);
+        }
+
         function generateMaze() {
             const maze = [];
             for (let i = 0; i < GRID_HEIGHT; i++) {
@@ -250,7 +347,6 @@
                 }
             }
             
-            // Add power pellets at corners
             maze[1][1] = 'P';
             maze[1][GRID_WIDTH - 2] = 'P';
             maze[GRID_HEIGHT - 2][1] = 'P';
@@ -259,19 +355,23 @@
             return maze;
         }
 
-        // Initialize the game (called on first start)
         function initGame() {
             score = 0;
             lives = 3;
             level = 1;
             isGameOver = false;
             gameRunning = true;
-            scaredTimer = 0;
+            dizzyTimer = 0;
             eatenGhostBonus = 100;
+            
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            canvas.style.display = 'block';
+
+            showMessage("게임 시작!");
             setupLevel();
         }
 
-        // Set up each level
         function setupLevel() {
             gameMaze = generateMaze();
             pacman = { x: 1, y: 1, dx: 0, dy: 0, radius: TILE_SIZE / 2 * 0.8, mouthOpen: false, angle: 0 };
@@ -281,55 +381,64 @@
             respawnTimer = 0;
             intendedDx = 0;
             intendedDy = 0;
-            scaredTimer = 0;
+            dizzyTimer = 0;
             
-            // Generate dots and count them
             for (let y = 0; y < gameMaze.length; y++) {
                 for (let x = 0; x < gameMaze[y].length; x++) {
                     if (gameMaze[y][x] === ' ') {
                         gameMaze[y][x] = '.';
                         dots++;
+                    } else if (gameMaze[y][x] === 'P') {
+                         dots++;
                     }
                 }
             }
 
-            // Pacman and ghost initial positions
-            // Pacman's starting tile is already handled for power pellet in generateMaze
             gameMaze[pacman.y][pacman.x] = ' ';
             dots--;
             
-            // Find a valid, non-wall position for ghosts to spawn that is not near Pac-Man's start
             let ghostSpawnX, ghostSpawnY;
             let foundSpawnPoint = false;
             const maxAttempts = GRID_WIDTH * GRID_HEIGHT;
             let attempts = 0;
 
+            const powerPelletLocations = [
+                { x: 1, y: 1 },
+                { x: GRID_WIDTH - 2, y: 1 },
+                { x: 1, y: GRID_HEIGHT - 2 },
+                { x: GRID_WIDTH - 2, y: GRID_HEIGHT - 2 }
+            ];
+
             while (!foundSpawnPoint && attempts < maxAttempts) {
                 const randX = Math.floor(Math.random() * GRID_WIDTH);
                 const randY = Math.floor(Math.random() * GRID_HEIGHT);
 
-                // Check if the tile is a valid path and not too close to Pac-Man's starting point
-                const isFarEnough = (Math.abs(randX - pacman.x) > 5 || Math.abs(randY - pacman.y) > 5);
+                const isFarEnoughFromPacman = (Math.abs(randX - pacman.x) > 5 || Math.abs(randY - pacman.y) > 5);
+                const isNotOnPowerPellet = !powerPelletLocations.some(pp => 
+                    (pp.x === randX && pp.y === randY) ||
+                    (pp.x === randX + 1 && pp.y === randY) ||
+                    (pp.x === randX && pp.y === randY + 1) ||
+                    (pp.x === randX + 1 && pp.y === randY + 1)
+                );
 
-                if (gameMaze[randY] && gameMaze[randY][randX] !== 'W' && isFarEnough) {
+                if (gameMaze[randY] && gameMaze[randY][randX] !== 'W' && isFarEnoughFromPacman && isNotOnPowerPellet) {
                     ghostSpawnX = randX;
                     ghostSpawnY = randY;
                     foundSpawnPoint = true;
                 }
                 attempts++;
             }
-            // If no point is found after many attempts, fall back to a default location
+
             if (!foundSpawnPoint) {
                 ghostSpawnX = Math.floor(GRID_WIDTH / 2);
                 ghostSpawnY = Math.floor(GRID_HEIGHT / 2);
             }
             
-            ghosts.push({ x: ghostSpawnX, y: ghostSpawnY, dx: 0, dy: 0, color: '#ff0000', scared: false, released: true });
-            ghosts.push({ x: ghostSpawnX + 1, y: ghostSpawnY, dx: 0, dy: 0, color: '#ffb8de', scared: false, released: true });
-            ghosts.push({ x: ghostSpawnX, y: ghostSpawnY + 1, dx: 0, dy: 0, color: '#00ffff', scared: false, released: true });
-            ghosts.push({ x: ghostSpawnX + 1, y: ghostSpawnY + 1, dx: 0, dy: 0, color: '#ffb852', scared: false, released: true });
+            ghosts.push({ x: ghostSpawnX, y: ghostSpawnY, dx: 0, dy: 0, color: getCssVariable('--ghost-color-1'), dizzy: false, released: true });
+            ghosts.push({ x: ghostSpawnX + 1, y: ghostSpawnY, dx: 0, dy: 0, color: getCssVariable('--ghost-color-2'), dizzy: false, released: true });
+            ghosts.push({ x: ghostSpawnX, y: ghostSpawnY + 1, dx: 0, dy: 0, color: getCssVariable('--ghost-color-3'), dizzy: false, released: true });
+            ghosts.push({ x: ghostSpawnX + 1, y: ghostSpawnY + 1, dx: 0, dy: 0, color: getCssVariable('--ghost-color-4'), dizzy: false, released: true });
             
-            // Clear dots from ghost spawn area
             for (let y = ghostSpawnY; y <= ghostSpawnY + 1; y++) {
                 for (let x = ghostSpawnX; x <= ghostSpawnX + 1; x++) {
                      if (gameMaze[y] && (gameMaze[y][x] === '.' || gameMaze[y][x] === 'P')) {
@@ -342,15 +451,11 @@
             updateScore();
             updateLives();
             updateLevel();
-            
-            gameOverScreen.classList.add('hidden');
-            startScreen.classList.add('hidden');
-            canvas.style.display = 'block';
         }
 
-        // Move to the next level
         function nextLevel() {
             level++;
+            showMessage(`레벨 ${level} 시작!`);
             setupLevel();
         }
 
@@ -362,18 +467,22 @@
                     const screenY = y * TILE_SIZE;
 
                     if (char === 'W') {
-                        ctx.fillStyle = '#1e1e90';
-                        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-                    } else if (char === '.') {
-                        ctx.fillStyle = 'yellow';
+                        ctx.fillStyle = getCssVariable('--wall-color');
+                        ctx.strokeStyle = getCssVariable('--wall-border');
+                        ctx.lineWidth = 2;
                         ctx.beginPath();
-                        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, 3, 0, Math.PI * 2);
+                        ctx.roundRect(screenX, screenY, TILE_SIZE, TILE_SIZE, 10);
+                        ctx.stroke();
                         ctx.fill();
+                    } else if (char === '.') {
+                         ctx.fillStyle = getCssVariable('--dot-color');
+                         ctx.beginPath();
+                         ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.1, 0, Math.PI * 2);
+                         ctx.fill();
                     } else if (char === 'P') {
-                        // Draw power pellet
-                        ctx.fillStyle = 'yellow';
+                        ctx.fillStyle = getCssVariable('--ghost-color-1');
                         ctx.beginPath();
-                        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE / 4, 0, Math.PI * 2);
+                        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.3, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 }
@@ -387,45 +496,71 @@
                 ctx.globalAlpha = 1;
             }
             
-            ctx.fillStyle = 'yellow';
+            const centerX = pacman.x * TILE_SIZE + TILE_SIZE / 2;
+            const centerY = pacman.y * TILE_SIZE + TILE_SIZE / 2;
+            const radius = pacman.radius;
+            
+            ctx.fillStyle = getCssVariable('--pacman-color');
+            ctx.shadowColor = getCssVariable('--pacman-glow');
+            ctx.shadowBlur = 10;
+            
             ctx.beginPath();
-            let startAngle, endAngle;
-            if (pacman.mouthOpen) {
-                const mouthAngle = Math.PI / 4;
-                startAngle = pacman.angle - mouthAngle;
-                endAngle = pacman.angle + mouthAngle;
-            } else {
-                startAngle = 0;
-                endAngle = Math.PI * 2;
-            }
-            ctx.arc(pacman.x * TILE_SIZE + TILE_SIZE / 2, pacman.y * TILE_SIZE + TILE_SIZE / 2, pacman.radius, startAngle, endAngle);
-            ctx.lineTo(pacman.x * TILE_SIZE + TILE_SIZE / 2, pacman.y * TILE_SIZE + TILE_SIZE / 2);
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
 
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            const eyeRadius = radius * 0.2;
+            ctx.arc(centerX - radius * 0.3, centerY - radius * 0.4, eyeRadius, 0, Math.PI * 2);
+            ctx.arc(centerX + radius * 0.3, centerY - radius * 0.4, eyeRadius, 0, Math.PI * 2);
+            ctx.fill();
+            
             ctx.globalAlpha = 1;
         }
 
         function drawGhosts() {
             ghosts.forEach(ghost => {
                 let ghostColor = ghost.color;
-                if (ghost.scared) {
-                    ghostColor = '#0000ff';
-                    if (scaredTimer < 3000 && Math.floor(scaredTimer / 250) % 2 === 0) {
-                        ghostColor = '#ffffff'; // Blink white
-                    }
+                if (ghost.dizzy) {
+                    ghostColor = getCssVariable('--ghost-dizzy-color');
                 }
 
                 ctx.fillStyle = ghostColor;
                 ctx.beginPath();
-                ctx.moveTo(ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2);
-                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2, TILE_SIZE / 2 * 0.9, Math.PI, 0, false);
-                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.9, ghost.y * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.9);
-                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.9 * 0.5, ghost.y * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.5);
-                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.9);
-                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE / 2 - TILE_SIZE / 2 * 0.9 * 0.5, ghost.y * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.5);
-                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE / 2 - TILE_SIZE / 2 * 0.9, ghost.y * TILE_SIZE + TILE_SIZE / 2 + TILE_SIZE / 2 * 0.9);
+                ctx.moveTo(ghost.x * TILE_SIZE + TILE_SIZE * 0.1, ghost.y * TILE_SIZE + TILE_SIZE * 0.6);
+                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE * 0.1, ghost.y * TILE_SIZE + TILE_SIZE * 0.2);
+                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE * 0.2, TILE_SIZE * 0.4, Math.PI, 0);
+                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE * 0.9, ghost.y * TILE_SIZE + TILE_SIZE * 0.6);
+                
+                const segmentSize = TILE_SIZE * 0.8 / 3;
+                ctx.lineTo(ghost.x * TILE_SIZE + TILE_SIZE * 0.9, ghost.y * TILE_SIZE + TILE_SIZE * 0.6);
+                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE * 0.9 - segmentSize / 2, ghost.y * TILE_SIZE + TILE_SIZE * 0.6, segmentSize / 2, 0, Math.PI);
+                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE * 0.9 - segmentSize * 1.5, ghost.y * TILE_SIZE + TILE_SIZE * 0.6, segmentSize / 2, 0, Math.PI);
+                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE * 0.9 - segmentSize * 2.5, ghost.y * TILE_SIZE + TILE_SIZE * 0.6, segmentSize / 2, 0, Math.PI);
                 ctx.closePath();
                 ctx.fill();
+
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                const eyeRadius = TILE_SIZE * 0.1;
+                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE * 0.35, ghost.y * TILE_SIZE + TILE_SIZE * 0.35, eyeRadius, 0, Math.PI * 2);
+                ctx.arc(ghost.x * TILE_SIZE + TILE_SIZE * 0.65, ghost.y * TILE_SIZE + TILE_SIZE * 0.35, eyeRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (ghost.dizzy) {
+                    ctx.font = `${TILE_SIZE * 0.4}px Press Start 2P`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText('😵', ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2 + 10);
+                } else {
+                    ctx.font = `${TILE_SIZE * 0.2}px Press Start 2P`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillStyle = '#333';
+                    ctx.fillText('zZz', ghost.x * TILE_SIZE + TILE_SIZE / 2, ghost.y * TILE_SIZE + TILE_SIZE / 2 + 10);
+                }
             });
         }
 
@@ -441,11 +576,11 @@
             levelValue.textContent = level;
         }
         
-        function activateScaredMode() {
-            scaredTimer = 10000; // 10 seconds scared time
+        function activateDizzyMode() {
+            dizzyTimer = 10000;
             eatenGhostBonus = 100;
             ghosts.forEach(ghost => {
-                ghost.scared = true;
+                ghost.dizzy = true;
             });
         }
 
@@ -496,7 +631,6 @@
             if (pacman.x >= GRID_WIDTH) pacman.x = 0;
         }
 
-        // Ghost random walk
         function moveGhosts() {
             ghosts.forEach(ghost => {
                 const currentTileX = Math.round(ghost.x);
@@ -519,8 +653,8 @@
 
                     if (possibleMoves.length > 0) {
                         const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-                        ghost.dx = move[0] * (ghost.scared ? GHOST_SPEED * 0.5 : GHOST_SPEED);
-                        ghost.dy = move[1] * (ghost.scared ? GHOST_SPEED * 0.5 : GHOST_SPEED);
+                        ghost.dx = move[0] * (ghost.dizzy ? GHOST_SPEED * 0.5 : GHOST_SPEED);
+                        ghost.dy = move[1] * (ghost.dizzy ? GHOST_SPEED * 0.5 : GHOST_SPEED);
                     } else {
                         ghost.dx *= -1;
                         ghost.dy *= -1;
@@ -544,14 +678,15 @@
                     intendedDx = 0;
                     intendedDy = 0;
 
-                    if (ghost.scared) {
+                    if (ghost.dizzy) {
                         score += eatenGhostBonus;
                         eatenGhostBonus *= 2;
                         ghost.x = Math.floor(GRID_WIDTH / 2);
                         ghost.y = Math.floor(GRID_HEIGHT / 2);
-                        ghost.scared = false;
+                        ghost.dizzy = false;
                         ghost.released = false;
                         updateScore();
+                        showMessage("젤리를 먹었습니다!");
                     } else {
                         lives--;
                         updateLives();
@@ -559,6 +694,7 @@
                             endGame();
                         } else {
                             resetPacmanAndGhosts();
+                            showMessage("아이고! 목숨 하나 감소!");
                         }
                     }
                 }
@@ -595,23 +731,10 @@
                 ghost.released = true;
             });
         }
-
-        function saveScore() {
-            scoreboard.push({
-                nickname: nickname,
-                level: level,
-                score: score
-            });
-            scoreboard.sort((a, b) => b.score - a.score);
-            if (scoreboard.length > 5) {
-                scoreboard.pop();
-            }
-            renderScoreboard();
-        }
-
-        function renderScoreboard() {
+        
+        function renderScoreboard(scores) {
             scoreboardList.innerHTML = '';
-            scoreboard.forEach(entry => {
+            scores.forEach(entry => {
                 const li = document.createElement('li');
                 li.innerHTML = `<span>${entry.nickname}</span><span>레벨 ${entry.level}</span><span>${entry.score}점</span>`;
                 scoreboardList.appendChild(li);
@@ -622,7 +745,6 @@
             isGameOver = true;
             gameRunning = false;
             finalScore.textContent = score;
-            saveScore();
             gameOverScreen.classList.remove('hidden');
         }
 
@@ -641,10 +763,10 @@
                 }
             }
             
-            if (scaredTimer > 0) {
-                scaredTimer -= deltaTime;
-                if (scaredTimer <= 0) {
-                    ghosts.forEach(ghost => ghost.scared = false);
+            if (dizzyTimer > 0) {
+                dizzyTimer -= deltaTime;
+                if (dizzyTimer <= 0) {
+                    ghosts.forEach(ghost => ghost.dizzy = false);
                     eatenGhostBonus = 100;
                 }
             }
@@ -672,14 +794,12 @@
                 gameMaze[pacmanGridY][pacmanGridX] = ' ';
                 dots--;
                 updateScore();
-                activateScaredMode();
+                activateDizzyMode();
             }
 
             if (dots <= 0) {
                 nextLevel();
             }
-
-            pacman.mouthOpen = Math.sin(timestamp / 100) > 0;
 
             if (!isGameOver) {
                 requestAnimationFrame(gameLoop);
@@ -692,37 +812,43 @@
             switch (e.key) {
                 case 'ArrowUp':
                     intendedDy = -PACMAN_SPEED;
-                    pacman.angle = -Math.PI / 2;
                     intendedDx = 0;
                     break;
                 case 'ArrowDown':
                     intendedDy = PACMAN_SPEED;
-                    pacman.angle = Math.PI / 2;
                     intendedDx = 0;
                     break;
                 case 'ArrowLeft':
                     intendedDx = -PACMAN_SPEED;
-                    pacman.angle = Math.PI;
                     intendedDy = 0;
                     break;
                 case 'ArrowRight':
                     intendedDx = PACMAN_SPEED;
-                    pacman.angle = 0;
                     intendedDy = 0;
                     break;
             }
         });
 
+        function showMessage(message) {
+            gameMessage.textContent = message;
+            gameMessage.classList.remove('hidden');
+            setTimeout(() => {
+                gameMessage.classList.add('hidden');
+            }, 1500);
+        }
+
         startButton.addEventListener('click', () => {
             const inputNickname = nicknameInput.value.trim();
-            nickname = inputNickname === '' ? 'guest' : inputNickname;
+            nickname = inputNickname === '' ? '게스트' : inputNickname;
             initGame();
+            lastTimestamp = performance.now();
             requestAnimationFrame(gameLoop);
         });
 
         guestButton.addEventListener('click', () => {
-            nickname = 'guest';
+            nickname = '게스트';
             initGame();
+            lastTimestamp = performance.now();
             requestAnimationFrame(gameLoop);
         });
 
@@ -730,11 +856,11 @@
             startScreen.classList.remove('hidden');
             gameOverScreen.classList.add('hidden');
             canvas.style.display = 'none';
+            fetchScores();
         });
 
-        window.onload = () => {
-            renderScoreboard();
-        };
+        window.onload = fetchScores;
     </script>
 </body>
 </html>
+
